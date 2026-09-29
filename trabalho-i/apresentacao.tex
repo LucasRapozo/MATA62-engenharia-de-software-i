@@ -1,0 +1,216 @@
+\documentclass[aspectratio=169,xcolor=table]{beamer}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[portuguese]{babel}
+\usepackage{tabularx,booktabs}
+% Caso não tenha o tema DCC no seu ambiente, comente a linha abaixo e use \usetheme{Madrid}
+\usetheme{DCC} 
+\setbeamertemplate{itemize items}[circle]
+\setlength{\parskip}{0.5em}
+\graphicspath{{imgs/}, {./}} % Busca imagens na pasta imgs/ ou na raiz
+% Mantém o tema original. Margem protege o conteúdo da faixa lateral.
+\setbeamersize{text margin left=1cm,text margin right=0.6cm}
+\author[Felipe, Jaedson, Lucas, Nadson]{%
+\textbf{Felipe Silva da Anunciação}\\[0.12cm]
+\textbf{Jaedson Barbosa Macedo}\\[0.12cm]
+\textbf{Lucas Pereira Rapozo}\\[0.12cm]
+\textbf{Nadson de Santana Sousa}}
+\title{Estilo Arquitetural Microkernel\\Análise: VS Code e OBS Studio}
+\institute{Universidade Federal da Bahia --- Engenharia de Software I}
+\date{2026}
+\newcommand{\fonte}[1]{\par\vspace{0.12cm}{\scriptsize\color{gray}Fonte: #1.}}
+
+\begin{document}
+
+% 1 | Capa
+\begin{frame}[plain,noframenumbering]
+\titlepage
+\end{frame}
+
+% 2 | Felipe
+\begin{frame}{O Estilo Microkernel}
+\begin{itemize}\setlength{\itemsep}{0.65em}
+\item Também conhecido como \textbf{Arquitetura Baseada em Plugins}.
+\item Resolve a necessidade de adicionar novas funcionalidades sem inflar ou quebrar o núcleo do sistema (evitando o antipadrão \textit{Big Ball of Mud}).
+\item \textbf{Estrutura Central:} Um \textit{Core System} enxuto + múltiplos \textit{Plug-in Components} independentes.
+\item \textbf{Objetivo do trabalho:} Analisar e documentar este estilo em dois sistemas reais e \textit{open source}: \textbf{Visual Studio Code} e \textbf{OBS Studio}.
+\end{itemize}
+\fonte{Richards e Ford (2020); elaboração própria}
+\end{frame}
+
+% 3 | Felipe
+\begin{frame}{Visual Studio Code: Características Arquiteturais}
+\begin{itemize}\setlength{\itemsep}{0.65em}
+\item \textbf{Identificadas:} Desempenho, Manutenibilidade, Portabilidade, Interoperabilidade, Segurança, Configurabilidade, Agilidade, Testabilidade.
+\end{itemize}
+\textbf{Top 4 Características Críticas:}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Característica} & \textbf{Justificativa do Foco}\\\midrule
+Extensibilidade & Razão de ser do editor; recursos nativos utilizam a mesma API oferecida a terceiros.\\[0.3em]
+Tolerância a Falhas & Fundamental para impedir que um plugin com erro congele a interface principal do usuário.\\[0.3em]
+Desempenho & A renderização de tela e a digitação devem ser fluidas, independente do processamento das extensões.\\[0.3em]
+Interoperabilidade e Reutilização & O uso de protocolos padronizados (como o LSP) permite que a lógica de linguagens seja reutilizada em outras ferramentas.\\\bottomrule
+\end{tabularx}
+\fonte{Análise do repositório microsoft/vscode}
+\end{frame}
+
+% 4 | Felipe
+\begin{frame}{Visual Studio Code: Decisões Arquiteturais (ADRs)}
+\begin{itemize}\setlength{\itemsep}{0.65em}
+\item \textbf{ADR-001: Adoção do Estilo Microkernel}
+  \begin{itemize} \item Desacoplamento por meio de um vocabulário claro de componentes. \end{itemize}
+\item \textbf{ADR-002: Isolamento de Extensões via Extension Host}
+  \begin{itemize} \item Executa plugins em processos separados. Evita travamentos na interface, em troca de um ligeiro custo de comunicação remota. \end{itemize}
+\item \textbf{ADR-003: Implementação do Language Server Protocol (LSP)}
+  \begin{itemize} \item Particionamento de domínio. Os serviços de sintaxe rodam como processos distribuídos. \end{itemize}
+\item \textbf{ADR-004: Utilização do Framework Electron}
+  \begin{itemize} \item Encapsulamento Web (HTML/JS) visando portabilidade extrema, assumindo um \textit{trade-off} de consumo de recursos. \end{itemize}
+\end{itemize}
+\fonte{Documentação oficial e ADRs levantadas (2026)}
+\end{frame}
+
+% 5 | Jaedson
+\begin{frame}{Visual Studio Code: Componentes Candidatos}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Core System}
+\begin{itemize}\setlength{\itemsep}{0.45em}
+\item \textbf{Workbench:} Layout e painéis.
+\item \textbf{Editor Monaco:} Edição de texto, cursor e renderização.
+\item \textbf{Processo Principal:} Integração com SO e ciclo de vida.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Infraestrutura e Plugins}
+\begin{itemize}\setlength{\itemsep}{0.45em}
+\item \textbf{Extension Service:} Descoberta e monitoramento de extensões.
+\item \textbf{Extension Host:} Processo isolado.
+\item \textbf{Plugins:} Servidores de linguagem (LSP), Debuggers (DAP) e temas.
+\end{itemize}
+\end{column}
+\end{columns}
+\fonte{Mapeamento dos componentes}
+\end{frame}
+
+% 6 | Jaedson
+\begin{frame}{Visual Studio Code: Diagrama de Componentes}
+\centering
+\includegraphics[height=0.7\textheight, keepaspectratio]{vscode_comp.png}
+\fonte{Elaboração própria (2026). Ilustra os 30\% mais críticos da orquestração.}
+\end{frame}
+
+% 7 | Jaedson
+\begin{frame}{Visual Studio Code: Diagrama de Módulos}
+\centering
+\includegraphics[height=0.7\textheight, keepaspectratio]{vscode_mod.png}
+\fonte{Elaboração própria (2026). Separação física de pacotes.}
+\end{frame}
+
+% 8 | Jaedson
+\begin{frame}{Visual Studio Code: Táticas Arquiteturais}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Característica alvo} & \textbf{Tática Aplicada}\\\midrule
+Extensibilidade & Particionamento de domínio (LSP) e interfaces padronizadas (Extension API) para acoplar capacidades sem recompilar.\\[0.3em]
+Tolerância a Falhas & Isolamento de processos. Códigos de terceiros não rodam na \textit{thread} principal do editor.\\[0.3em]
+Desempenho & Troca de mensagens assíncronas. Impede que lógicas lentas do plugin congelem a UI.\\[0.3em]
+Agilidade & Desacoplamento e versionamento isolado, suportando os lançamentos mensais contínuos.\\\bottomrule
+\end{tabularx}
+\fonte{Mapeamento de características e táticas}
+\end{frame}
+
+% 9 | Lucas
+\begin{frame}{OBS Studio: Características Arquiteturais}
+\begin{itemize}\setlength{\itemsep}{0.65em}
+\item \textbf{Identificadas:} Agilidade, Desempenho, Confiabilidade, Capacidade de Aprendizado, Implantabilidade e Portabilidade, Tolerância a Falhas, Extensibilidade e Testabilidade.
+\end{itemize}
+\textbf{Top 4 Características Críticas:}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Característica} & \textbf{Justificativa do Foco}\\\midrule
+Extensibilidade & Módulos (fontes, codificadores, saídas) adicionados via registro padronizado sem alterar o núcleo (\texttt{libobs}).\\[0.3em]
+Desempenho & Processamento multimídia a 60 FPS exige que a latência de compressão e cópia seja quase nula.\\[0.3em]
+Confiabilidade e Tol. a Falhas & Uma falha de hardware, como a queda da rede, não pode congelar ou encerrar o loop principal de vídeo.\\[0.3em]
+Implantabilidade/Portabilidade & Distribuição consistente (Windows, macOS, Linux) e capacidade de injetar plugins dinamicamente.\\\bottomrule
+\end{tabularx}
+\fonte{Análise do repositório obsproject/obs-studio}
+\end{frame}
+
+% 10 | Lucas
+\begin{frame}{OBS Studio: Decisões Arquiteturais (ADRs)}
+\begin{itemize}\setlength{\itemsep}{0.65em}
+\item \textbf{ADR-IMP-001: Implementação do Núcleo em C}
+  \begin{itemize} \item O \textit{libobs} é escrito em C para maximizar velocidade, controle de memória e possuir uma Interface Binária (ABI) estável. \end{itemize}
+\item \textbf{ADR-IMP-002: Desacoplamento da Interface Visual por meio de Qt}
+  \begin{itemize} \item Frontend escrito em C++ com framework Qt, separado do motor. \end{itemize}
+\item \textbf{ADR-IMP-003: Compartilhamento de Contexto Gráfico (Zero-Copy)}
+  \begin{itemize} \item Plugins repassam referências na GPU para evitar a cópia massiva de pixels na CPU/RAM. \end{itemize}
+\item \textbf{ADR-IMP-004: Injeção de Funcionalidades via Carregamento Dinâmico}
+  \begin{itemize} \item Uso de bibliotecas dinâmicas do SO (.dll/.so) para carregar módulos sob demanda ao iniciar. \end{itemize}
+\end{itemize}
+\fonte{Documentação oficial e ADRs levantadas (2026)}
+\end{frame}
+
+% 11 | Nadson
+\begin{frame}{OBS Studio: Componentes Candidatos}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+\textbf{Core e Contratos}
+\begin{itemize}\setlength{\itemsep}{0.45em}
+\item \textbf{libobs (Microkernel):} Orquestra o pipeline, sincroniza áudio/vídeo.
+\item \textbf{obs-module:} Cabeçalhos que determinam a API e os contratos de ligação.
+\item \textbf{Interface do Usuário (Qt):} Gerencia cenas e age como cliente enviando comandos.
+\end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\textbf{Categorias de Plugins}
+\begin{itemize}\setlength{\itemsep}{0.45em}
+\item \textbf{Source Plugins:} Capturam tela e hardware local.
+\item \textbf{Encoder Plugins:} Comprimem os frames usando a GPU.
+\item \textbf{Output Plugins:} Transmitem via RTMP ou gravam em disco de modo assíncrono.
+\end{itemize}
+\end{column}
+\end{columns}
+\fonte{Mapeamento dos componentes}
+\end{frame}
+
+% 12 | Nadson
+\begin{frame}{OBS Studio: Diagrama de Componentes}
+\centering
+\includegraphics[height=0.7\textheight, keepaspectratio]{obs_comp.png}
+\fonte{Elaboração própria (2026). Mostra o fluxo vital: Captura $\rightarrow$ Core $\rightarrow$ Compressão $\rightarrow$ Rede.}
+\end{frame}
+
+% 13 | Nadson
+\begin{frame}{OBS Studio: Diagrama de Módulos}
+\centering
+\includegraphics[height=0.7\textheight, keepaspectratio]{obs_mod.png}
+\fonte{Elaboração própria (2026). Isolamento das pastas físicas no repositório.}
+\end{frame}
+
+% 14 | Nadson
+\begin{frame}{OBS Studio: Táticas Arquiteturais}
+\begin{tabularx}{\textwidth}{@{}lX@{}}
+\toprule
+\textbf{Característica alvo} & \textbf{Tática Aplicada}\\\midrule
+Extensibilidade & Registro de módulos por meio de uma API padronizada (\texttt{obs-module.h}).\\[0.3em]
+Desempenho & Aumento da eficiência de recursos (GPU \textit{zero-copy}), reduzindo a cópia bruta de pixels.\\[0.3em]
+Confiabilidade e Tol. a Falhas & Isolamento de falhas. Lógicas de comunicação de rede rodam em \textit{threads} assíncronas separadas do loop central.\\[0.3em]
+Implantabilidade & \textit{Binding} em tempo de execução via bibliotecas dinâmicas, permitindo empacotamento modular.\\\bottomrule
+\end{tabularx}
+\fonte{Mapeamento de características e táticas}
+\end{frame}
+
+% 15 | Nadson
+\begin{frame}{Conclusão}
+\begin{itemize}\setlength{\itemsep}{0.8em}
+\item O estilo \textbf{Microkernel} isola a orquestração central das funcionalidades específicas, sendo ideal para ecossistemas que evoluem continuamente.
+\item \textbf{VS Code:} Focou no isolamento rigoroso de processos (\textit{Extension Host}) para garantir que a interface do usuário sobreviva a códigos defeituosos.
+\item \textbf{OBS Studio:} Focou no desempenho nativo em C e no compartilhamento de memória via GPU para garantir latência nula de vídeo.
+\item \textbf{Aprendizado Crítico:} A definição de contratos (APIs) bem estruturados no \textit{Core System} é o pilar que evita a degradação de arquiteturas em longo prazo.
+\end{itemize}
+\end{frame}
+
+\end{document}
